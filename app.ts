@@ -4,6 +4,7 @@ export const app = express();
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "morgan";
+import { ErrorMiddleware } from "./middlewares/errorMiddleware";
 
 app.use(express.json({ limit: "50mb" }));
 
@@ -30,3 +31,5 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 	err.statusCode = 404;
 	next(err);
 });
+
+app.use(ErrorMiddleware);
