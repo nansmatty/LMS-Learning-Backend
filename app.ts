@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "morgan";
 import { ErrorMiddleware } from "./middlewares/errorMiddleware";
+import userRouter from "./routes/userRoutes";
 
 app.use(express.json({ limit: "50mb" }));
 
@@ -16,6 +17,9 @@ app.use(cors({ origin: process.env.ORIGIN, credentials: true }));
 if (process.env.NODE_ENV === "development") {
 	app.use(morgan("dev"));
 }
+
+//Routes
+app.use("/api/v1", userRouter);
 
 //testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
