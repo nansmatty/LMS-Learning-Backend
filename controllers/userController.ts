@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { Secret } from "jsonwebtoken";
 import ejs from "ejs";
-import User from "../models/UserModel";
+import User, { IUser } from "../models/UserModel";
 import CatchAsyncError from "../middlewares/catchAsyncError";
 import ErrorHandler from "../config/errorHandler";
 import path from "path";
@@ -76,3 +76,73 @@ export const createActivationToken = (user: any): IActivationToken => {
 
 	return { token, activationCode };
 };
+
+interface IActivationRequest {
+	activation_token: string;
+	activation_code: string;
+}
+
+export const activateUser = CatchAsyncError(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { activation_code, activation_token } = req.body as IActivationRequest;
+
+			const newUser: { user: IUser; activationCode: string } = jwt.verify(
+				activation_token,
+				process.env.ACTIVATION_SECRET as string
+			) as { user: IUser; activationCode: string };
+
+			if (newUser.activationCode !== activation_code) {
+				return next(new ErrorHandler("Invaild activation code!", 400));
+			}
+
+			const { name, email, password } = newUser.user;
+
+			const existUser = await User.findOne({ email });
+
+			const user = await User.create({
+				name,
+				email,
+				password,
+			});
+
+			res.status(201).json({
+				success: true,
+			});
+		} catch (error: any) {
+			return next(new ErrorHandler(error.message, 400));
+		}
+	}
+);
+
+//Login User
+interface ILoginRequest {
+	email: string;
+	password: string;
+}
+
+export const loginUser = CatchAsyncError(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { email, password } = req.body as ILoginRequest;
+
+			if (!email || !password) {
+				return next(new ErrorHandler("Please enter email and password", 400));
+			}
+
+			const user = await User.findOne({ email }).select("password");
+
+			if (!user) {
+				return next(new ErrorHandler("Invalid User", 400));
+			}
+
+			const isPasswordMatch = await user.comparePassword(password);
+
+			if (!isPasswordMatch) {
+				return next(new ErrorHandler("Invalid Credentials", 400));
+			}
+		} catch (error: any) {
+			return next(new ErrorHandler(error.message, 400));
+		}
+	}
+);
