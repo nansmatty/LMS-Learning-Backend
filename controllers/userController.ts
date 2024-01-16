@@ -6,6 +6,7 @@ import CatchAsyncError from "../middlewares/catchAsyncError";
 import ErrorHandler from "../config/errorHandler";
 import path from "path";
 import sendMail from "../utils/sendMail";
+import { sendToken } from "../utils/jwt";
 
 // Register User
 interface IRegistrationBody {
@@ -141,6 +142,8 @@ export const loginUser = CatchAsyncError(
 			if (!isPasswordMatch) {
 				return next(new ErrorHandler("Invalid Credentials", 400));
 			}
+
+			sendToken(user, 200, res);
 		} catch (error: any) {
 			return next(new ErrorHandler(error.message, 400));
 		}

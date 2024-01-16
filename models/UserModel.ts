@@ -77,11 +77,11 @@ userSchema.pre<IUser>("save", async function (next) {
 	next();
 });
 
-userSchema.methods.SignAccessToken = function () {
+userSchema.methods.signAccessToken = function () {
 	return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "");
 };
 
-userSchema.methods.SignRefreshToken = function () {
+userSchema.methods.signRefreshToken = function () {
 	return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "");
 };
 
